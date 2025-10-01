@@ -1,7 +1,7 @@
 services:
   thumbor:
-    build: .
-    container_name: thumbor-server
+    image: ghcr.io/altendorfme/thumbor:latest
+    container_name: thumbor
     restart: unless-stopped
     ports:
       - "80:80"
@@ -42,22 +42,20 @@ services:
       
       # CORS Settings
       - ACCESS_CONTROL_ALLOW_ORIGIN_HEADER=${ACCESS_CONTROL_ALLOW_ORIGIN_HEADER:-*}
-      
     volumes:
       # Data directories
       - thumbor_data:/data
       - thumbor_logs:/var/log/supervisor
-      - thumbor_nginx_logs:/var/log/nginx
       - thumbor_nginx_cache:/var/cache/nginx/thumbor
       
       # SSL certificates (Let's Encrypt)
       - letsencrypt_certs:/etc/letsencrypt
       - ssl_certs:/etc/ssl/certs
       - certbot_webroot:/var/www/certbot
-      
+
     networks:
-      - thumbor-network
-    
+      - thumbor
+
     # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/healthcheck"]
@@ -67,15 +65,13 @@ services:
       start_period: 40s
 
 networks:
-  thumbor-network:
+  thumbor:
     driver: bridge
 
 volumes:
   thumbor_data:
     driver: local
   thumbor_logs:
-    driver: local
-  thumbor_nginx_logs:
     driver: local
   thumbor_nginx_cache:
     driver: local
