@@ -9,7 +9,7 @@ services:
       - "8888:8888"
     environment:
       # SSL Configuration
-      - SSL_DOMAIN=${SSL_DOMAIN:-localhost}
+      - DOMAIN=${DOMAIN:-localhost}
       
       # Thumbor Configuration
       - THUMBOR_LOG_LEVEL=${THUMBOR_LOG_LEVEL:-info}
