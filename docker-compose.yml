@@ -1,0 +1,87 @@
+services:
+  thumbor:
+    build: .
+    container_name: thumbor-server
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8888:8888"
+    environment:
+      # SSL Configuration
+      - SSL_DOMAIN=${SSL_DOMAIN:-localhost}
+      
+      # Thumbor Configuration
+      - THUMBOR_LOG_LEVEL=${THUMBOR_LOG_LEVEL:-info}
+      - THUMBOR_NUM_PROCESSES=${THUMBOR_NUM_PROCESSES:-4}
+      - SECURITY_KEY=${SECURITY_KEY:-MY_SECURE_KEY}
+      - ALLOW_UNSAFE_URL=${ALLOW_UNSAFE_URL:-true}
+      
+      # Image Processing Settings
+      - MAX_WIDTH=${MAX_WIDTH:-2000}
+      - MAX_HEIGHT=${MAX_HEIGHT:-2000}
+      - QUALITY=${QUALITY:-85}
+      - AUTO_WEBP=${AUTO_WEBP:-true}
+      - AUTO_AVIF=${AUTO_AVIF:-true}
+      - PROGRESSIVE_JPEG=${PROGRESSIVE_JPEG:-true}
+      
+      # Storage Configuration
+      - STORAGE=${STORAGE:-thumbor.storages.file_storage}
+      - RESULT_STORAGE=${RESULT_STORAGE:-thumbor.result_storages.file_storage}
+      - STORAGE_EXPIRATION_SECONDS=${STORAGE_EXPIRATION_SECONDS:-2592000}
+      
+      # HTTP Loader Settings
+      - HTTP_LOADER_CONNECT_TIMEOUT=${HTTP_LOADER_CONNECT_TIMEOUT:-10}
+      - HTTP_LOADER_REQUEST_TIMEOUT=${HTTP_LOADER_REQUEST_TIMEOUT:-30}
+      - HTTP_LOADER_FOLLOW_REDIRECTS=${HTTP_LOADER_FOLLOW_REDIRECTS:-true}
+      - HTTP_LOADER_MAX_REDIRECTS=${HTTP_LOADER_MAX_REDIRECTS:-5}
+      
+      # Performance Settings
+      - ENGINE_THREADPOOL_SIZE=${ENGINE_THREADPOOL_SIZE:-4}
+      - GC_INTERVAL=${GC_INTERVAL:-30}
+      
+      # CORS Settings
+      - ACCESS_CONTROL_ALLOW_ORIGIN_HEADER=${ACCESS_CONTROL_ALLOW_ORIGIN_HEADER:-*}
+      
+    volumes:
+      # Data directories
+      - thumbor_data:/data
+      - thumbor_logs:/var/log/supervisor
+      - thumbor_nginx_logs:/var/log/nginx
+      - thumbor_nginx_cache:/var/cache/nginx/thumbor
+      
+      # SSL certificates (Let's Encrypt)
+      - letsencrypt_certs:/etc/letsencrypt
+      - ssl_certs:/etc/ssl/certs
+      - certbot_webroot:/var/www/certbot
+      
+    networks:
+      - thumbor-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  thumbor-network:
+    driver: bridge
+
+volumes:
+  thumbor_data:
+    driver: local
+  thumbor_logs:
+    driver: local
+  thumbor_nginx_logs:
+    driver: local
+  thumbor_nginx_cache:
+    driver: local
+  letsencrypt_certs:
+    driver: local
+  ssl_certs:
+    driver: local
+  certbot_webroot:
+    driver: local
