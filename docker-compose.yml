@@ -1,6 +1,6 @@
 services:
   thumbor:
-    image: ghcr.io/altendorfme/thumbor:latest
+    image: ghcr.io/butialabs/thumbor:latest
     container_name: thumbor
     restart: unless-stopped
     ports:
